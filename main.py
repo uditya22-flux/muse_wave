@@ -15,17 +15,43 @@ Custom gestures (trained by you):
 Press Q or ESC to quit.
 """
 
+import atexit
+import ctypes
 import cv2
 import time
 import logging
 import sys
 import os
+import queue
 from dotenv import load_dotenv
 from gesture_detector import GestureDetector
 from spotify_controller import SpotifyController
+from voice_controller import VoiceController
 
 # Load environment variables from .env file
 load_dotenv()
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+os.chdir(SCRIPT_DIR)
+LOCK_FILE = os.path.join(SCRIPT_DIR, "musewave.lock")
+
+# Only one Musewave instance (webcam can only be used once).
+_mutex = ctypes.windll.kernel32.CreateMutexW(None, False, "MusewaveGestureApp")
+if ctypes.windll.kernel32.GetLastError() == 183:
+    sys.exit(0)
+
+def _write_lock():
+    with open(LOCK_FILE, "w", encoding="utf-8") as f:
+        f.write(str(os.getpid()))
+
+def _remove_lock():
+    try:
+        os.remove(LOCK_FILE)
+    except OSError:
+        pass
+
+_write_lock()
+atexit.register(_remove_lock)
 
 # ── CONFIGURATION ─────────────────────────────────────────────────
 CLIENT_ID     = os.getenv("CLIENT_ID", "")
@@ -36,12 +62,17 @@ HOLD_REQUIRED = 1.5
 COOLDOWN      = 5.0
 WINDOW_NAME   = "Spotify Gesture Controller"
 FONT          = cv2.FONT_HERSHEY_DUPLEX
+SILENT_MODE   = "--silent" in sys.argv
 # ──────────────────────────────────────────────────────────────────
+
+_log_handlers = [logging.FileHandler("gesture_app.log")]
+if not os.path.basename(sys.executable).lower().startswith("pythonw"):
+    _log_handlers.insert(0, logging.StreamHandler(sys.stdout))
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout), logging.FileHandler("gesture_app.log")],
+    handlers=_log_handlers,
 )
 logger = logging.getLogger("main")
 
@@ -125,6 +156,10 @@ def main():
     spotify = SpotifyController()
     logger.info("Media-key controller ready.")
 
+    voice_queue = queue.Queue()
+    vc = VoiceController(callback=voice_queue.put)
+    vc.start()
+
     gesture_start   = None
     cooldown_until  = 0.0
     status_msg      = "Show a gesture or train new ones with gesture_trainer.py"
@@ -133,7 +168,10 @@ def main():
     now_playing_txt = ""
     np_refresh_at   = 0.0
 
-    logger.info("Running. Press Q to quit.")
+    logger.info("Running%s.", " silently in background" if SILENT_MODE else ". Press Q to quit.")
+
+    if not SILENT_MODE:
+        cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
 
     while cap.isOpened():
         ok, frame = cap.read()
@@ -155,7 +193,8 @@ def main():
         in_cooldown   = now < cooldown_until
         cooldown_left = max(0.0, cooldown_until - now)
 
-        detector.draw_landmarks(frame, result)
+        if not SILENT_MODE:
+            detector.draw_landmarks(frame, result)
 
         heart_ok    = detector.stable_heart(result)
         thumbsup_ok = detector.stable_thumbsup(result)
@@ -164,28 +203,43 @@ def main():
         # Custom trained gesture check
         custom_name, custom_action = detector.recognise_custom(result)
 
+        try:
+            voice_action = voice_queue.get_nowait()
+        except queue.Empty:
+            voice_action = None
+
         detected_builtin = "heart" if heart_ok else ("thumbsup" if thumbsup_ok else None)
 
-        # ── Priority: swipe > custom > built-in hold ─────────────────
+        # ── Priority: voice > swipe > custom > built-in hold ─────────────────
 
-        if swipe_ok:
+        if voice_action and not in_cooldown:
+            fn  = ACTION_DISPATCH.get(voice_action, lambda sp: "Unknown action")
+            res = fn(spotify)
+            status_msg     = f"Voice: {voice_action}  ->  {res}"
+            status_color   = C_PINK
+            cooldown_until = now + COOLDOWN
+            gesture_start  = None
+            active_gesture = None
+            logger.info("Voice command -> %s -> %s", voice_action, res)
+
+        elif swipe_ok:
             res = spotify.next_track()
-            status_msg     = f"Next Track  →  {res}"
+            status_msg     = f"Next Track  ->  {res}"
             status_color   = C_ORANGE
             cooldown_until = now + COOLDOWN
             gesture_start  = None
             active_gesture = None
-            logger.info("Swipe → %s", res)
+            logger.info("Swipe -> %s", res)
 
         elif custom_name and not in_cooldown:
             fn  = ACTION_DISPATCH.get(custom_action, lambda sp: "Unknown action")
             res = fn(spotify)
-            status_msg     = f"{custom_name}  →  {res}"
+            status_msg     = f"{custom_name}  ->  {res}"
             status_color   = C_BLUE
             cooldown_until = now + COOLDOWN
             gesture_start  = None
             active_gesture = None
-            logger.info("Custom '%s' → %s → %s", custom_name, custom_action, res)
+            logger.info("Custom '%s' -> %s -> %s", custom_name, custom_action, res)
 
         elif detected_builtin and not in_cooldown:
             if active_gesture != detected_builtin:
@@ -195,12 +249,12 @@ def main():
             hold = now - gesture_start
             if hold >= HOLD_REQUIRED:
                 res = spotify.like_current_song()
-                status_msg     = f"Play/Pause  →  {res}"
+                status_msg     = f"Play/Pause  ->  {res}"
                 status_color   = C_PINK
                 cooldown_until = now + COOLDOWN
                 gesture_start  = None
                 active_gesture = None
-                logger.info("Hold '%s' → %s", detected_builtin, res)
+                logger.info("Hold '%s' -> %s", detected_builtin, res)
             else:
                 icon = "Heart" if detected_builtin == "heart" else "Thumbs-up"
                 status_msg   = f"{icon} — hold {HOLD_REQUIRED - hold:.1f}s more"
@@ -227,19 +281,23 @@ def main():
         else:
             glabel = ""
 
-        draw_ui(
-            frame, status_msg, status_color, bar_progress,
-            now_playing_txt, cooldown_left, glabel,
-            is_premium=spotify.is_premium,
-        )
-
-        cv2.imshow(WINDOW_NAME, frame)
-        key = cv2.waitKey(1) & 0xFF
-        if key in (ord('q'), 27):
-            break
+        if not SILENT_MODE:
+            draw_ui(
+                frame, status_msg, status_color, bar_progress,
+                now_playing_txt, cooldown_left, glabel,
+                is_premium=spotify.is_premium,
+            )
+            cv2.imshow(WINDOW_NAME, frame)
+            key = cv2.waitKey(1) & 0xFF
+            if key in (ord('q'), 27):
+                break
+        else:
+            cv2.waitKey(1)
 
     cap.release()
-    cv2.destroyAllWindows()
+    if not SILENT_MODE:
+        cv2.destroyAllWindows()
+    vc.stop()
     logger.info("Exited.")
 
 
