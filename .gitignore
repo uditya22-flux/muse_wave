@@ -30,4 +30,6 @@ gesture_app.log
 Thumbs.db
 
 # Project specific
-gesture_config.json
+.spotify_spicetify/
+liked_songs.txt
+spotify_controller_windows_backup.py

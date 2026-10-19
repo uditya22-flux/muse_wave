@@ -27,7 +27,7 @@ try:
 except ImportError:
     MP_OK = False
 
-GESTURE_CONFIG_FILE = "gesture_config.json"
+GESTURE_CONFIG_FILE = str(Path(__file__).resolve().parent / "gesture_config.json")
 MATCH_THRESHOLD     = 0.82
 STABLE_FRAMES       = 6           # frames in a row before declaring a stable custom gesture
 SWIPE_BUFFER        = 12          # frames of wrist-x history for swipe detection
@@ -38,12 +38,22 @@ SWIPE_THRESHOLD     = 0.18        # normalised-x distance for a swipe
 # Helpers
 # ════════════════════════════════════════════════════════════════════
 
+def _to_feature(vec: np.ndarray) -> np.ndarray:
+    """Enhance 63-d landmark vector with finger-curl vectors (MCP/PIP -> TIP) for sharp separation."""
+    pts = np.asarray(vec, dtype=float).reshape(21, 3)
+    fingers = np.concatenate([
+        pts[4] - pts[2],   pts[8] - pts[5],   pts[12] - pts[9],  pts[16] - pts[13], pts[20] - pts[17],
+        pts[8] - pts[6],   pts[12] - pts[10], pts[16] - pts[14], pts[20] - pts[18],
+    ])
+    return np.concatenate([pts.flatten(), fingers * 2.5])
+
+
 def _load_config() -> dict:
     if Path(GESTURE_CONFIG_FILE).exists():
         with open(GESTURE_CONFIG_FILE) as f:
             raw = json.load(f)
         for g in raw.get("gestures", []):
-            g["samples"] = [np.array(s) for s in g["samples"]]
+            g["samples"] = [_to_feature(np.array(s)) for s in g["samples"]]
         return raw
     return {"gestures": []}
 
@@ -53,7 +63,7 @@ def _extract_vector(hand_landmarks) -> np.ndarray:
     pts -= pts[0]
     span = np.linalg.norm(pts[9] - pts[0]) + 1e-6
     pts /= span
-    return pts.flatten()
+    return _to_feature(pts.flatten())
 
 
 def _cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
@@ -63,7 +73,37 @@ def _cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
     return float(np.dot(a, b) / (na * nb))
 
 
+def _finger_extended(pts: np.ndarray, mcp: int, pip: int, tip: int) -> bool:
+    d_tip_w = np.linalg.norm(pts[tip, :2] - pts[0, :2])
+    d_pip_w = np.linalg.norm(pts[pip, :2] - pts[0, :2])
+    v1 = pts[pip, :2] - pts[mcp, :2]
+    v2 = pts[tip, :2] - pts[pip, :2]
+    cos_ang = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2) + 1e-6)
+    return bool((d_tip_w > d_pip_w + 0.15) and (cos_ang > 0.5))
+
+
 def _recognise(vector: np.ndarray, config: dict):
+    pts = vector[:63].reshape(21, 3)
+
+    # 1) Geometric check for 1 Index Finger Up (thumb down, middle/ring/pinky curled) -> Volume Down
+    idx_up      = pts[8, 1] < pts[6, 1] - 0.15 < pts[5, 1] - 0.15
+    others_down = all(pts[tip, 1] > pts[pip, 1] - 0.05 for tip, pip in [(12, 10), (16, 14), (20, 18)])
+    thumb_below = (pts[4, 1] - pts[8, 1]) > 0.40   # distinguishes Index Up from Korean Heart (where thumb_y ≈ idx_y)
+    if idx_up and others_down and thumb_below:
+        return "volume down", "Volume Down", 0.95
+
+    # 2) Rotation-invariant check for 2 Fingers Extended (Index + Middle extended, Ring + Pinky curled) -> Next / Previous Track
+    idx_ext = _finger_extended(pts, 5, 6, 8)
+    mid_ext = _finger_extended(pts, 9, 10, 12)
+    rng_ext = _finger_extended(pts, 13, 14, 16)
+    pnk_ext = _finger_extended(pts, 17, 18, 20)
+    if idx_ext and mid_ext and not rng_ext and not pnk_ext:
+        tilt = (pts[8, 0] - pts[5, 0]) + (pts[12, 0] - pts[9, 0])
+        if tilt >= -0.05:
+            return "next", "Next Track", 0.95
+        else:
+            return "prev", "Previous Track", 0.95
+
     best_name, best_action, best_score = None, None, 0.0
     for g in config["gestures"]:
         sims  = sorted([_cosine_sim(vector, s) for s in g["samples"]], reverse=True)

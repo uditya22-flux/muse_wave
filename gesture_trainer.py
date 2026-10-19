@@ -48,7 +48,7 @@ except ImportError:
     MP_OK = False
     logger.error("mediapipe not found. Run: pip install mediapipe")
 
-GESTURE_CONFIG_FILE = "gesture_config.json"
+GESTURE_CONFIG_FILE = str(Path(__file__).resolve().parent / "gesture_config.json")
 SAMPLES_PER_GESTURE = 30
 RECORD_DURATION     = 2.5       # seconds
 MATCH_THRESHOLD     = 0.82
@@ -265,14 +265,14 @@ class GestureTrainer:
             "TYPE gesture name  then press ENTER",
             f">> {self.new_name}_",
             "",
-            "[ENTER] confirm   [ESC] back",
+            "[ENTER] confirm   [BACKSPACE when empty] back",
         ], (12, 75))
 
     def _hud_action(self, frame, result, now):
         lines = ["SELECT ACTION   UP/DOWN or W/S   ENTER", ""]
         for i, a in enumerate(ACTIONS):
             lines.append((">> " if i == self.action_idx else "   ") + a)
-        lines += ["", "[ESC] back"]
+        lines += ["", "[B] or [Q] back"]
         panel(frame, lines, (12, 75))
 
     def _hud_record(self, frame, result, now):
@@ -291,9 +291,9 @@ class GestureTrainer:
                 f"Gesture : {self.new_name}",
                 f"Action  : {self.new_action}",
                 "",
-                "[R] Hold to record  (keep hand steady ~2.5s)",
-                "[S] Save gesture when satisfied",
-                "[ESC] Cancel",
+                "[R] Record fresh   [A] Add more samples (~2.5s)",
+                "[S] or [F] Save gesture when satisfied",
+                "[B] or [Q] Cancel / back",
             ], (12, 75))
             shadow(frame, f"Samples captured: {len(self.samples)}",
                    (12, h - 30), 0.60, C_TEAL, 1)
@@ -304,7 +304,7 @@ class GestureTrainer:
             lines += [f">> {self.test_result}", f"   Score: {self.test_score:.2f}"]
         else:
             lines += ["(no match yet)"]
-        lines += ["", "[ESC] back to menu"]
+        lines += ["", "[B] or [Q] back to menu"]
         panel(frame, lines, (12, 75))
 
     # ── Flash ─────────────────────────────────────────────────────────
@@ -319,25 +319,25 @@ class GestureTrainer:
     def handle_key(self, key, result, now) -> bool:
         if key == 255:   # no key
             return True
-        if key in (ord('q'), 27) and self.mode == "menu":
+        if key in (ord('q'), ord('Q'), 27) and self.mode == "menu":
             return False
 
         if self.mode == "menu":
-            if key == ord('n'):
+            if key in (ord('n'), ord('N')):
                 self.new_name  = ""
                 self.samples   = []
                 self.mode      = "name_input"
-            elif key == ord('t'):
+            elif key in (ord('t'), ord('T')):
                 self.test_result = ""
                 self.mode        = "test"
-            elif key == ord('d'):
+            elif key in (ord('d'), ord('D')):
                 if self.config["gestures"]:
                     r = self.config["gestures"].pop()
                     save_config(self.config)
                     self.flash(f"Deleted: {r['name']}", C_RED)
                 else:
                     self.flash("Nothing to delete", C_GREY)
-            elif key == ord('l'):
+            elif key in (ord('l'), ord('L')):
                 if self.config["gestures"]:
                     self.flash("  |  ".join(g["name"] for g in self.config["gestures"]),
                                C_TEAL, 3.5)
@@ -347,54 +347,68 @@ class GestureTrainer:
         elif self.mode == "name_input":
             if key == 27:
                 self.mode = "menu"
-            elif key == 13:
+            elif key in (10, 13):   # ENTER on Linux (10) and Windows (13)
                 if self.new_name.strip():
                     self.action_idx = 0
                     self.mode       = "action_select"
                 else:
                     self.flash("Name cannot be empty!", C_RED)
-            elif key == 8:
-                self.new_name = self.new_name[:-1]
+            elif key in (8, 127):   # BACKSPACE on Linux (8 or 127)
+                if self.new_name:
+                    self.new_name = self.new_name[:-1]
+                else:
+                    self.mode = "menu"
             elif 32 <= key <= 126:
                 self.new_name += chr(key)
 
         elif self.mode == "action_select":
-            if key == 27:
+            if key in (27, ord('b'), ord('B'), ord('q'), ord('Q')):
                 self.mode = "name_input"
-            elif key in (82, 119, ord('w')):   # UP arrow / w
+            elif key in (82, 119, ord('w'), ord('W')):   # UP arrow / w
                 self.action_idx = (self.action_idx - 1) % len(ACTIONS)
-            elif key in (84, 115, ord('s')):   # DOWN arrow / s
+            elif key in (84, 115, ord('s'), ord('S')):   # DOWN arrow / s
                 self.action_idx = (self.action_idx + 1) % len(ACTIONS)
-            elif key == 13:
+            elif key in (10, 13):   # ENTER on Linux (10) and Windows (13)
                 self.new_action = ACTIONS[self.action_idx]
                 self.samples    = []
                 self.mode       = "recording"
 
         elif self.mode == "recording":
-            if key == 27:
+            if key in (27, ord('b'), ord('B'), ord('q'), ord('Q')):
                 self.mode = "menu"
-            elif key == ord('r'):
+            elif key in (ord('r'), ord('R')):
                 hand = self.first_hand(result)
                 if hand:
                     self.record_start = now
                     self.samples      = []
                 else:
                     self.flash("No hand in view! Try again.", C_RED)
-            elif key == ord('s'):
+            elif key in (ord('a'), ord('A')):
+                hand = self.first_hand(result)
+                if hand:
+                    self.record_start = now
+                else:
+                    self.flash("No hand in view! Try again.", C_RED)
+            elif key in (ord('s'), ord('S'), ord('f'), ord('F')):
                 if len(self.samples) >= 5:
+                    # Overwrite if gesture with same name exists, else append
+                    self.config["gestures"] = [
+                        g for g in self.config["gestures"]
+                        if g["name"].lower() != self.new_name.strip().lower()
+                    ]
                     self.config["gestures"].append({
-                        "name":    self.new_name,
+                        "name":    self.new_name.strip(),
                         "action":  self.new_action,
                         "samples": self.samples,
                     })
                     save_config(self.config)
-                    self.flash(f"Saved '{self.new_name}' -> {self.new_action}", C_GREEN, 2.5)
+                    self.flash(f"Saved '{self.new_name.strip()}' -> {self.new_action}", C_GREEN, 2.5)
                     self.mode = "menu"
                 else:
                     self.flash(f"Need 5+ samples (have {len(self.samples)}). Press [R] again.", C_RED)
 
         elif self.mode == "test":
-            if key == 27:
+            if key in (27, ord('b'), ord('B'), ord('q'), ord('Q')):
                 self.mode = "menu"
 
         return True
@@ -404,20 +418,18 @@ class GestureTrainer:
     def update_record(self, result, now):
         if self.mode != "recording" or self.record_start is None:
             return
-        hand = self.first_hand(result)
-        if hand is None:
-            self.record_start = None
-            self.flash("Hand lost! Press [R] to retry.", C_RED)
-            return
-        elapsed      = now - self.record_start
-        target_count = int((elapsed / RECORD_DURATION) * SAMPLES_PER_GESTURE)
-        while len(self.samples) < target_count:
+        elapsed = now - self.record_start
+        hand    = self.first_hand(result)
+        if hand is not None:
             vec   = extract_vector(hand)
             noise = np.random.normal(0, 0.008, vec.shape)
             self.samples.append(vec + noise)
         if elapsed >= RECORD_DURATION:
             self.record_start = None
-            self.flash(f"{len(self.samples)} samples ready! Press [S] to save.", C_GREEN, 3.0)
+            if len(self.samples) >= 5:
+                self.flash(f"{len(self.samples)} samples ready! Press [S] or [F] to save, [A] to add more.", C_GREEN, 3.0)
+            else:
+                self.flash("Too few hand frames captured! Press [R] and keep hand in view.", C_RED, 3.0)
 
     # ── Test update ───────────────────────────────────────────────────
 
@@ -434,8 +446,18 @@ class GestureTrainer:
     # ── Main loop ─────────────────────────────────────────────────────
 
     def run(self):
-        cap = cv2.VideoCapture(0)
-        if not cap.isOpened():
+        import subprocess
+        # Free the webcam if background launch_with_spotify.sh / main.py is using /dev/video0
+        subprocess.run(["pkill", "-f", "launch_with_spotify.sh"], stderr=subprocess.DEVNULL)
+        subprocess.run(["pkill", "-f", "main.py"], stderr=subprocess.DEVNULL)
+
+        cap = None
+        for _ in range(6):
+            time.sleep(0.5)
+            cap = cv2.VideoCapture(0)
+            if cap.isOpened():
+                break
+        if cap is None or not cap.isOpened():
             logger.error("Cannot open webcam.")
             sys.exit(1)
         cap.set(cv2.CAP_PROP_FRAME_WIDTH,  1280)
@@ -465,6 +487,16 @@ class GestureTrainer:
         cap.release()
         cv2.destroyAllWindows()
         logger.info("Done. Gestures saved to %s", GESTURE_CONFIG_FILE)
+        # If Spotify is open, automatically resume background watcher
+        if subprocess.run(["pgrep", "-x", "spotify"], capture_output=True).returncode == 0:
+            launcher = str(Path(__file__).resolve().parent / "launch_with_spotify.sh")
+            subprocess.Popen(
+                ["bash", launcher, "--watch-only"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True,
+            )
+            logger.info("Resumed background gesture controller for Spotify.")
 
 
 if __name__ == "__main__":
