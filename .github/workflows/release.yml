@@ -1,0 +1,121 @@
+name: Build & Publish Release Packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Ubuntu (.deb), Linux (.tar.gz), and Windows (.zip) Packages
+        run: |
+          mkdir -p dist /tmp/musewave_deb_build/musewave_2.0.0_all/DEBIAN
+          mkdir -p /tmp/musewave_deb_build/musewave_2.0.0_all/opt/musewave/spicetify_extension
+          mkdir -p /tmp/musewave_deb_build/musewave_2.0.0_all/usr/bin
+          mkdir -p /tmp/musewave_deb_build/musewave_2.0.0_all/usr/share/applications
+
+          cp main.py voice_controller.py gesture_detector.py gesture_trainer.py spotify_controller.py gesture_config.json hand_landmarker.task requirements.txt pyproject.toml setup.py install.sh launch_with_spotify.sh setup_spicetify.sh README.md LICENSE /tmp/musewave_deb_build/musewave_2.0.0_all/opt/musewave/
+          cp spicetify_extension/musewave.js /tmp/musewave_deb_build/musewave_2.0.0_all/opt/musewave/spicetify_extension/
+
+          cat > /tmp/musewave_deb_build/musewave_2.0.0_all/DEBIAN/control << 'EOF'
+          Package: musewave
+          Version: 2.0.0
+          Section: sound
+          Priority: optional
+          Architecture: all
+          Depends: python3 (>= 3.10), python3-venv, python3-pip, playerctl, alsa-utils, libnotify-bin
+          Maintainer: Uditya <https://github.com/uditya22-flux/spotify__>
+          Homepage: https://github.com/uditya22-flux/spotify__
+          Description: Multimodal Voice & Hand-Gesture Media Daemon for Spotify & YouTube
+           Low-latency, privacy-first local daemon combining parallel bilingual ASR
+           (en-IN + ml-IN) with a 21-point MediaPipe hand-skeleton k-NN classifier,
+           MPRIS2 D-Bus routing, and Spicetify WebSocket bridge.
+          EOF
+
+          cat > /tmp/musewave_deb_build/musewave_2.0.0_all/DEBIAN/postinst << 'EOF'
+          #!/bin/sh
+          set -e
+          if [ "$1" = "configure" ]; then
+              echo "[musewave] Setting up Python virtual environment in /opt/musewave/venv..."
+              python3 -m venv /opt/musewave/venv
+              /opt/musewave/venv/bin/pip install --upgrade pip -q || true
+              /opt/musewave/venv/bin/pip install -r /opt/musewave/requirements.txt -q || true
+              chmod -R a+rX /opt/musewave
+          fi
+          EOF
+
+          chmod -R 0755 /tmp/musewave_deb_build/musewave_2.0.0_all
+          chmod 0644 /tmp/musewave_deb_build/musewave_2.0.0_all/DEBIAN/control
+          chmod 0755 /tmp/musewave_deb_build/musewave_2.0.0_all/DEBIAN/postinst
+
+          cat > /tmp/musewave_deb_build/musewave_2.0.0_all/usr/bin/musewave << 'EOF'
+          #!/usr/bin/env bash
+          cd /opt/musewave
+          exec /opt/musewave/venv/bin/python /opt/musewave/main.py "$@"
+          EOF
+
+          cat > /tmp/musewave_deb_build/musewave_2.0.0_all/usr/bin/musewave-train << 'EOF'
+          #!/usr/bin/env bash
+          cd /opt/musewave
+          exec /opt/musewave/venv/bin/python /opt/musewave/gesture_trainer.py "$@"
+          EOF
+
+          chmod 0755 /tmp/musewave_deb_build/musewave_2.0.0_all/usr/bin/musewave /tmp/musewave_deb_build/musewave_2.0.0_all/usr/bin/musewave-train
+
+          cat > /tmp/musewave_deb_build/musewave_2.0.0_all/usr/share/applications/musewave.desktop << 'EOF'
+          [Desktop Entry]
+          Version=2.0.0
+          Name=Musewave
+          Comment=Multimodal Voice & Hand-Gesture Media Controller
+          Exec=/usr/bin/musewave
+          Path=/opt/musewave
+          Terminal=true
+          Type=Application
+          Categories=AudioVideo;Audio;Utility;
+          EOF
+          chmod 0644 /tmp/musewave_deb_build/musewave_2.0.0_all/usr/share/applications/musewave.desktop
+
+          dpkg-deb --root-owner-group --build /tmp/musewave_deb_build/musewave_2.0.0_all dist/musewave_2.0.0_all.deb
+
+          tar -czf dist/musewave-2.0.0-linux-x86_64.tar.gz \
+              --owner=0 --group=0 \
+              --transform 's,^,musewave-2.0.0/,' \
+              main.py voice_controller.py gesture_detector.py gesture_trainer.py spotify_controller.py \
+              gesture_config.json hand_landmarker.task requirements.txt pyproject.toml setup.py \
+              install.sh launch_with_spotify.sh setup_spicetify.sh spicetify_extension/musewave.js \
+              README.md LICENSE
+
+          python3 -c '
+          import zipfile
+          files = [
+              "main.py", "voice_controller.py", "gesture_detector.py", "gesture_trainer.py",
+              "spotify_controller.py", "gesture_config.json", "hand_landmarker.task",
+              "requirements.txt", "pyproject.toml", "setup.py", "install_windows.bat",
+              "spicetify_extension/musewave.js", "README.md", "LICENSE"
+          ]
+          with zipfile.ZipFile("dist/musewave-2.0.0-windows-x64.zip", "w", zipfile.ZIP_DEFLATED) as zf:
+              for f in files:
+                  zf.write(f, f"musewave-2.0.0-windows/{f}")
+          '
+
+          sha256sum dist/*.deb dist/*.tar.gz dist/*.zip > dist/SHA256SUMS.txt
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            dist/musewave_2.0.0_all.deb
+            dist/musewave-2.0.0-linux-x86_64.tar.gz
+            dist/musewave-2.0.0-windows-x64.zip
+            dist/SHA256SUMS.txt
+          generate_release_notes: true

@@ -33,3 +33,11 @@ Thumbs.db
 .spotify_spicetify/
 liked_songs.txt
 spotify_controller_windows_backup.py
+run_musewave.bat
+
+# Build & Release Artifacts
+dist/
+build/
+*.egg-info/
+.deb_build/
+

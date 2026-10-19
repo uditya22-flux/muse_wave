@@ -231,6 +231,10 @@ class VoiceController:
         threading.Thread(target=_worker, daemon=True).start()
 
     def _listen_loop(self):
+        import sys
+        if sys.platform == "win32":
+            self._listen_loop_windows()
+            return
         dev = _pick_capture_device()
         while self._running:
             proc = None
@@ -299,3 +303,54 @@ class VoiceController:
                         pass
             if self._running:
                 time.sleep(0.5)
+
+    def _listen_loop_windows(self):
+        try:
+            import sounddevice as sd
+        except Exception as e:
+            logger.error("sounddevice not available on Windows: %s", e)
+            return
+
+        frames_per_chunk = int(SAMPLE_RATE * CHUNK_SEC)
+        while self._running:
+            try:
+                noise_rms      = 120.0
+                in_speech      = False
+                speech_chunks  = []
+                silence_chunks = 0
+                pre_roll       = []
+
+                with sd.RawInputStream(samplerate=SAMPLE_RATE, blocksize=frames_per_chunk, channels=1, dtype="int16") as stream:
+                    while self._running:
+                        data, _ = stream.read(frames_per_chunk)
+                        raw = bytes(data)
+                        samples = np.frombuffer(raw, dtype=np.int16).astype(np.float32)
+                        rms     = float(np.sqrt(np.mean(samples ** 2)))
+                        threshold = max(noise_rms * 2.0, 220.0)
+
+                        if not in_speech:
+                            pre_roll.append(raw)
+                            if len(pre_roll) > 3:
+                                pre_roll.pop(0)
+                            if rms > threshold:
+                                in_speech      = True
+                                speech_chunks  = list(pre_roll)
+                                silence_chunks = 0
+                            else:
+                                noise_rms = 0.95 * noise_rms + 0.05 * rms
+                        else:
+                            speech_chunks.append(raw)
+                            if rms < threshold * 0.75:
+                                silence_chunks += 1
+                            else:
+                                silence_chunks = 0
+                            if silence_chunks >= 5 or len(speech_chunks) >= 35:
+                                if len(speech_chunks) >= 6:
+                                    self._transcribe_async(b"".join(speech_chunks))
+                                in_speech      = False
+                                speech_chunks  = []
+                                silence_chunks = 0
+            except Exception as e:
+                logger.warning("Windows voice capture error: %s", e)
+                time.sleep(1.0)
+

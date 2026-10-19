@@ -128,11 +128,35 @@ def _playerctl(*args):
     target = _get_target_player()
     return _run(["playerctl", f"--player={target}"] + list(args))
 
+def _win_media_key(vk_code: int) -> bool:
+    """Send a native Windows Virtual-Key media event via user32.dll (no admin required)."""
+    import sys
+    if sys.platform != "win32":
+        return False
+    try:
+        import ctypes
+        KEYEVENTF_EXTENDEDKEY = 0x0001
+        KEYEVENTF_KEYUP       = 0x0002
+        ctypes.windll.user32.keybd_event(vk_code, 0, KEYEVENTF_EXTENDEDKEY, 0)
+        ctypes.windll.user32.keybd_event(vk_code, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0)
+        return True
+    except Exception as e:
+        logger.error("Win32 keybd_event failed: %s", e)
+        return False
+
 def _change_volume(direction: str) -> bool:
     """
     direction: 'up' or 'down'
-    Uses wpctl (PipeWire), amixer (ALSA), playerctl, and Spicetify bridge so volume always changes on Linux.
+    Uses Win32 media keys on Windows, or wpctl (PipeWire), amixer (ALSA), playerctl, and Spicetify on Linux.
     """
+    import sys
+    if sys.platform == "win32":
+        vk = 0xAF if direction == "up" else 0xAE  # VK_VOLUME_UP / VK_VOLUME_DOWN
+        _win_media_key(vk)
+        _win_media_key(vk)
+        _push_spicetify_event("vol_up" if direction == "up" else "vol_down")
+        return True
+
     pctl_arg   = "0.1+" if direction == "up" else "0.1-"
     wpctl_arg  = "10%+" if direction == "up" else "10%-"
     amixer_arg = "10%+" if direction == "up" else "10%-"
@@ -178,10 +202,12 @@ def _dbus_mpris(method: str) -> bool:
 
 class SpotifyController:
     def __init__(self, auto_open=True, *args, **kwargs):
-        self._connected  = bool(_run(["which", "playerctl"]))
+        import sys
+        self._is_win     = (sys.platform == "win32")
+        self._connected  = True if self._is_win else bool(_run(["which", "playerctl"]))
         self._is_premium = False
         _start_spicetify_bridge()
-        if auto_open and _run(["pgrep", "-x", "spotify"]) is None:
+        if not self._is_win and auto_open and _run(["pgrep", "-x", "spotify"]) is None:
             try:
                 spicetify_bin = Path(__file__).resolve().parent / ".spotify_spicetify" / "spotify"
                 target_bin = str(spicetify_bin) if spicetify_bin.exists() else "spotify"
@@ -194,7 +220,7 @@ class SpotifyController:
                 logger.info("Launched Spotify desktop app (%s).", target_bin)
             except Exception as e:
                 logger.warning("Could not auto-launch Spotify: %s", e)
-        logger.info("SpotifyController ready (playerctl + Spicetify mode)")
+        logger.info("SpotifyController ready (%s + Spicetify mode)", "Win32" if self._is_win else "playerctl")
 
     @property
     def is_connected(self):
@@ -206,25 +232,34 @@ class SpotifyController:
 
     def like_current_song(self):
         def _pp():
-            ok = _playerctl("play-pause") is not None or _dbus_mpris("PlayPause")
+            if self._is_win:
+                ok = _win_media_key(0xB3)  # VK_MEDIA_PLAY_PAUSE
+            else:
+                ok = _playerctl("play-pause") is not None or _dbus_mpris("PlayPause")
             _push_spicetify_event("notify", "⏯️ Musewave: Play / Pause")
             return ok
         return _send(_pp, "Play/Pause toggled")
 
     def next_track(self):
         def _next():
-            ok = _playerctl("next") is not None or _dbus_mpris("Next")
+            if self._is_win:
+                ok = _win_media_key(0xB0)  # VK_MEDIA_NEXT_TRACK
+            else:
+                ok = _playerctl("next") is not None or _dbus_mpris("Next")
             _push_spicetify_event("notify", "⏭️ Musewave: Next Track")
             return ok
         return _send(_next, "Next track")
 
     def previous_track(self):
         def _prev():
-            # In Spotify, sending 'previous' once after 3s only rewinds to 0:00.
-            # Sending 'previous' twice skips back to the actual previous song!
-            ok = _playerctl("previous") is not None or _dbus_mpris("Previous")
-            time.sleep(0.15)
-            _playerctl("previous") or _dbus_mpris("Previous")
+            if self._is_win:
+                ok = _win_media_key(0xB1)  # VK_MEDIA_PREV_TRACK
+                time.sleep(0.15)
+                _win_media_key(0xB1)
+            else:
+                ok = _playerctl("previous") is not None or _dbus_mpris("Previous")
+                time.sleep(0.15)
+                _playerctl("previous") or _dbus_mpris("Previous")
             _push_spicetify_event("notify", "⏮️ Musewave: Previous Track")
             return ok
         return _send(_prev, "Previous track")
@@ -244,14 +279,15 @@ class SpotifyController:
             liked_file = Path(__file__).resolve().parent / "liked_songs.txt"
             with open(liked_file, "a") as f:
                 f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')}  |  {label}\n")
-            _run(["notify-send", "-a", "Musewave", "Saved to Spotify Liked Songs ❤️", label])
+            if not self._is_win:
+                _run(["notify-send", "-a", "Musewave", "Saved to Spotify Liked Songs ❤️", label])
             return True
         return _send(_save, "Song saved")
 
     def get_now_playing_label(self):
         try:
-            title  = _playerctl("metadata", "title") or _spicetify_track.get("title", "")
-            artist = _playerctl("metadata", "artist") or _spicetify_track.get("artist", "")
+            title  = ("" if self._is_win else _playerctl("metadata", "title")) or _spicetify_track.get("title", "")
+            artist = ("" if self._is_win else _playerctl("metadata", "artist")) or _spicetify_track.get("artist", "")
             if title:
                 return f"{title}  -  {artist}" if artist else title
         except Exception:
