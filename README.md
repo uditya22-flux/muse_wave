@@ -7,143 +7,139 @@
 ██║╚██╔╝██║██║   ██║╚════██║██╔══╝  ██║███╗██║██╔══██║╚██╗ ██╔╝██╔══╝  
 ██║ ╚═╝ ██║╚██████╔╝███████║███████╗╚███╔███╔╝██║  ██║ ╚████╔╝ ███████╗
 ╚═╝     ╚═╝ ╚═════╝ ╚══════╝╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝  ╚═══╝  ╚══════╝
-                        [ v2.0 // VOICE + GESTURE + SPICETIFY ]
+                 [ BUILD // 2.0.0-LINUX-X86_64 // MIT ]
 ```
 
-**Zero-Touch Media Control for Linux & Desktop — Powered by Bilingual Voice (English + മലയാളം), 3D Hand-Landmark Geometry, and Spicetify.**  
-*No Spotify Web API keys. No Premium subscription required. Privacy-first (Webcam OFF by default).*
+** Touchless Media Daemon for Linux — Bilingual ASR (`en-IN` / `ml-IN`), 90-D Hand-Pose Geometry & Spicetify IPC **  
+`NO_WEB_API` · `NO_PREMIUM_REQUIRED` · `ZERO_TELEMETRY` · `CAMERA_OFF_BY_DEFAULT`
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![Linux](https://img.shields.io/badge/Linux-Ubuntu%20%7C%20PipeWire%20%7C%20MPRIS2-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://kernel.org)
-[![MediaPipe](https://img.shields.io/badge/MediaPipe-Hands%203D-00C7B7?style=for-the-badge&logo=google&logoColor=white)](https://mediapipe.dev)
-[![OpenCV](https://img.shields.io/badge/OpenCV-Real--Time%20CV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)](https://opencv.org)
-[![Spicetify](https://img.shields.io/badge/Spicetify-Native%20Bridge-1DB954?style=for-the-badge&logo=spotify&logoColor=white)](https://spicetify.app)
-[![License: MIT](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)](LICENSE)
+[![python](https://img.shields.io/badge/python-3.10%2B-111111?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![platform](https://img.shields.io/badge/platform-linux%20%7C%20pipewire%20%7C%20mpris2-111111?style=flat-square&logo=linux&logoColor=white)](https://kernel.org)
+[![vision](https://img.shields.io/badge/vision-mediapipe%20%2B%20opencv-111111?style=flat-square&logo=opencv&logoColor=white)](https://mediapipe.dev)
+[![ipc](https://img.shields.io/badge/ipc-spicetify%20bridge%20:19745-111111?style=flat-square&logo=spotify&logoColor=1DB954)](https://spicetify.app)
+[![license](https://img.shields.io/badge/license-MIT-111111?style=flat-square)](LICENSE)
 
 </div>
 
 ---
 
-```bash
-$ musewave --status
-[✓] audio.vad        :: ALSA/PipeWire 16kHz PCM stream active (ambient noise floor calibrated)
-[✓] speech.engine    :: Parallel ASR threads ready [en-IN + ml-IN (മലയാളം / Manglish)]
-[✓] privacy.guard    :: Webcam hardware RELEASED (LED OFF — say "camera on" to enable CV)
-[✓] gesture.engine   :: 90-D curl-weighted cosine matcher + rotation-invariant 2-finger solver
-[✓] spicetify.bridge :: HTTP IPC daemon listening on 127.0.0.1:19745
-[✓] mpris.router     :: Auto-targeting active player (Spotify / YouTube / Browser / VLC)
-> awaiting voice or gesture input_
+```text
+$ ./venv/bin/python main.py
+[07:45:01.104] [INFO] sys.init         :: bootstrapping musewave daemon (pid=41892)
+[07:45:01.112] [INFO] audio.vad        :: opened pcm capture stream [dev=plughw:0,7 rate=16000Hz fmt=S16_LE ch=1]
+[07:45:01.118] [INFO] asr.engine       :: dual-thread recognizer online [workers=en-IN,ml-IN]
+[07:45:01.120] [INFO] video.v4l2       :: /dev/video0 state=RELEASED (hardware led=OFF; say 'camera on' to attach)
+[07:45:01.125] [INFO] ipc.spicetify    :: http bridge bound to 127.0.0.1:19745/poll
+[07:45:01.129] [INFO] mpris.router     :: bus active -> org.mpris.MediaPlayer2.spotify
+[07:45:01.130] [READY]                 :: listening on stdin/mic_
 ```
 
 ---
 
-## ⚡ Why Musewave?
+## 0x01 // OVERVIEW
 
-Spotify locked playback Web APIs behind Premium, and leaving a webcam running 24/7 just to skip a track feels intrusive. **Musewave v2.0** solves both:
+`musewave` is a low-overhead Linux daemon that controls media playback across **Spotify**, **YouTube** (Chromium/Brave/Firefox), and **VLC** without touching the keyboard or paying for Spotify Web API access.
 
-1. **🎙️ Privacy-First Bilingual Voice Control (Webcam OFF by Default)**  
-   Starts in pure voice mode so your webcam light stays **completely off**. Speak naturally in **English**, **Malayalam (`മലയാളം`)**, or **Manglish** to play, pause, skip, adjust volume, or save tracks.
-2. **🖐️ On-Demand 3D Hand Gesture Engine**  
-   Say `"camera on"` (or `"ക്യാമറ ഓൺ"`) whenever you want touchless hand gestures, and `"camera off"` (`"ക്യാമറ ഓഫ്"`) to immediately release `/dev/video0` and shut off the camera LED.
-3. **💚 Native Spicetify Injection (`musewave.js`)**  
-   Includes a custom Spicetify extension that bridges Python directly into Spotify's internal `Spicetify.Player` & `LibraryAPI` — allowing you to **genuinely Heart / Save songs to your Spotify "Liked Songs"** and see live in-app toast notifications without a developer API key.
-4. **🌐 Universal MPRIS2 Media Routing**  
-   Automatically detects and controls whichever media source is actively playing — **Spotify Desktop**, **YouTube** (Brave / Chrome / Firefox), or **VLC** — via `playerctl`, D-Bus MPRIS2, and PipeWire (`wpctl`).
+1. **Voice-First Privacy Architecture**: Launches with `/dev/video0` completely unattached. The webcam hardware LED remains off until explicitly attached via voice (`"camera on"`) or CLI flag (`--show` / `--camera`).
+2. **Parallel Bilingual ASR (`en-IN` + `ml-IN`)**: Segments speech via an adaptive RMS Voice Activity Detector (VAD) over raw 16kHz PCM frames from ALSA/PipeWire, dispatching concurrent recognition threads for **English**, **Malayalam (`മലയാളം`)**, and **Manglish**.
+3. **90-D Geometric Hand-Pose Classifier**: Augments MediaPipe's 63-D wrist-normalized 3D skeleton with 27-D `2.5x` weighted finger-curl vectors (`MCP->TIP`, `PIP->TIP`) and rotation-invariant collinearity checks.
+4. **Spicetify Native IPC Bridge**: Injects `musewave.js` into the Spotify client to execute native `Spicetify.Player.toggleHeart()` / `LibraryAPI` calls (saving tracks directly to Spotify *Liked Songs*) and render in-app HUD notifications over `127.0.0.1:19745`.
 
 ---
 
-## 🌿 Repository Branches
+## 0x02 // REPOSITORY TOPOLOGY & BRANCHES
 
-This repository is organized into three dedicated branches so you can pull the exact stack you want:
-
-| Branch | Focus | Description |
+| Branch | Target | Stack Composition |
 | :--- | :--- | :--- |
-| **`main`** *(default)* | **Full Hybrid Stack** | Complete **Voice (English + Malayalam) + Hand Gestures + Spicetify Bridge** with dynamic `"camera on"` / `"camera off"` switching |
-| **`voice`** | **Voice-First Stack** | Focused on low-CPU continuous voice activation (`en-IN` + `ml-IN`) with hardware webcam disabled by default |
-| **`gesture`** | **Computer Vision Stack** | Focused on MediaPipe 3D hand-landmark recognition, custom gesture training (`gesture_trainer.py`), and `gesture_config.json` profiles |
+| **`main`** *(default)* | Hybrid Daemon | Full Voice (`en-IN` + `ml-IN`) + On-Demand 3D Hand Gestures + Spicetify IPC + MPRIS2 Router |
+| **`voice`** | Audio-Only | Continuous ALSA/PipeWire VAD + Bilingual ASR daemon with V4L2 camera disabled |
+| **`gesture`** | Vision-Only | MediaPipe 90-D cosine matcher + interactive OpenCV gesture trainer (`gesture_trainer.py`) |
 
 ```bash
-# Clone a specific branch:
-git clone -b main https://github.com/uditya22-flux/spotify__.git     # Hybrid (Voice + Gesture)
-git clone -b voice https://github.com/uditya22-flux/spotify__.git    # Voice-focused
-git clone -b gesture https://github.com/uditya22-flux/spotify__.git  # Gesture-focused
+git clone -b main    https://github.com/uditya22-flux/spotify__.git  # hybrid (voice + gesture)
+git clone -b voice   https://github.com/uditya22-flux/spotify__.git  # voice-only branch
+git clone -b gesture https://github.com/uditya22-flux/spotify__.git  # gesture-only branch
 ```
 
 ---
 
-## 🏗️ System Architecture
+## 0x03 // SYSTEM ARCHITECTURE
 
 ```text
-                    ┌──────────────────────────────────────────────┐
-                    │           MUSEWAVE CORE (main.py)            │
-                    └───────┬──────────────────────────────┬───────┘
-                            │                              │
-        [Always Active]     ▼                              ▼    [On-Demand: "camera on"]
-┌───────────────────────────────────────┐      ┌───────────────────────────────────────┐
-│     VOICE ENGINE (voice_controller)   │      │    VISION ENGINE (gesture_detector)   │
-├───────────────────────────────────────┤      ├───────────────────────────────────────┤
-│ • PipeWire / ALSA 16kHz PCM Stream    │      │ • MediaPipe 21×3D Hand Landmarks      │
-│ • Adaptive RMS Voice Activity (VAD)   │      │ • 63-D Wrist-Centred + Scale Norm     │
-│ • Parallel Dual-ASR: en-IN + ml-IN    │      │ • +27-D (2.5×) Finger-Curl Vectors    │
-│ • English + മലയാളം + Manglish Lexicon │      │ • Rotation-Invariant Geometric Rules  │
-└───────────────────┬───────────────────┘      └───────────────────┬───────────────────┘
-                    └──────────────────────┬───────────────────────┘
-                                           ▼
-                    ┌──────────────────────────────────────────────┐
-                    │      MEDIA ROUTER (spotify_controller.py)    │
-                    └───────┬──────────────────────────────┬───────┘
-                            │                              │
-                            ▼                              ▼
-        ┌──────────────────────────────────────┐ ┌─────────────────────────────────────┐
-        │   LINUX MPRIS2 + PIPEWIRE AUDIO      │ │  SPICETIFY IPC BRIDGE (:19745/poll) │
-        ├──────────────────────────────────────┤ ├─────────────────────────────────────┤
-        │ • playerctl (Spotify / YouTube)      │ │ • musewave.js Extension             │
-        │ • Direct D-Bus MPRIS2 Fallback       │ │ • Spicetify.Player.toggleHeart()    │
-        │ • wpctl / amixer Audio Sink Control  │ │ • Native In-App Toast Notifications │
-        └──────────────────────────────────────┘ └─────────────────────────────────────┘
++-----------------------------------------------------------------------------------+
+|                                 main.py (CORE LOOP)                               |
++-----------------------------------------+-----------------------------------------+
+                                          |
+                 +------------------------+------------------------+
+                 |                                                 |
+                 v [ALWAYS ACTIVE]                                 v [ON-DEMAND: "camera on"]
++----------------------------------------+       +----------------------------------------+
+| voice_controller.py                    |       | gesture_detector.py                    |
+| -------------------------------------- |       | -------------------------------------- |
+| * arecord 16kHz S16_LE mono pipe       |       | * MediaPipe 21x3D hand skeleton        |
+| * Rolling RMS noise floor + VAD        |       | * 63-D wrist-origin scale normalization|
+| * Concurrent en-IN & ml-IN ASR workers |       | * +27-D (2.5x) MCP/PIP->TIP curl vecs  |
+| * English + Malayalam + Manglish lexer |       | * Rotation-invariant 2-finger solver   |
++-------------------+--------------------+       +--------------------+-------------------+
+                    |                                                 |
+                    +------------------------+------------------------+
+                                             |
+                                             v
++-----------------------------------------------------------------------------------+
+|                          spotify_controller.py (DISPATCH)                         |
++-----------------------------------------+-----------------------------------------+
+                                          |
+                 +------------------------+------------------------+
+                 |                                                 |
+                 v [D-BUS / PIPEWIRE]                              v [HTTP IPC :19745]
++----------------------------------------+       +----------------------------------------+
+| OS MEDIA LAYER                         |       | spicetify_extension/musewave.js        |
+| -------------------------------------- |       | -------------------------------------- |
+| * playerctl (Spotify / YouTube / VLC)  |       | * Polls GET 127.0.0.1:19745/poll       |
+| * Direct org.mpris.MediaPlayer2 D-Bus  |       | * Spicetify.Player.toggleHeart()       |
+| * wpctl @DEFAULT_AUDIO_SINK@ / amixer  |       | * Spicetify.Platform.LibraryAPI.add()  |
+| * notify-send desktop OSD              |       | * Spicetify.showNotification() HUD     |
++----------------------------------------+       +----------------------------------------+
 ```
 
 ---
 
-## 🎙️ Voice Commands (English + മലയാളം / Manglish)
+## 0x04 // VOICE COMMAND LEXICON (`en-IN` + `ml-IN`)
 
-Both **`en-IN`** and **`ml-IN`** speech recognizers run concurrently on every detected voice segment — mix English and Malayalam seamlessly without changing any settings:
+Both `en-IN` and `ml-IN` recognizers evaluate each VAD frame in parallel. No mode switching is required.
 
-| Action | Malayalam (`മലയാളം`) | Manglish / Phonetic | English Commands |
+| Opcode | Malayalam (`മലയാളം`) | Manglish / Transliterated | English Tokens |
 | :--- | :--- | :--- | :--- |
-| **⏯️ Play / Pause** | `"പാട്ട് വെക്കൂ"`, `"പാടൂ"`, `"നിർത്തൂ"`, `"മതി"`, `"നില്ല്"` | `pattu vekku`, `padu`, `nirthu`, `mathi`, `nillu` | `"play"`, `"pause"`, `"stop"`, `"resume"` |
-| **⏭️ Next Track** | `"അടുത്ത പാട്ട്"`, `"അടുത്തത്"`, `"മാറ്റൂ"`, `"വേറെ പാട്ട്"` | `adutha pattu`, `aduthathu`, `maattu`, `vere pattu` | `"next"`, `"skip"`, `"next song"`, `"forward"` |
-| **⏮️ Previous Track** | `"മുമ്പത്തെ പാട്ട്"`, `"കഴിഞ്ഞ പാട്ട്"`, `"പിന്നോട്ട്"` | `mumbathe pattu`, `kazhinja pattu`, `pinnottu` | `"previous"`, `"back"`, `"go back"`, `"last song"` |
-| **🔊 Volume Up** | `"ശബ്ദം കൂട്ടൂ"`, `"സൗണ്ട് കൂട്ടൂ"`, `"കൂട്ടൂ"`, `"ഒച്ച കൂട്ടൂ"` | `shabdham koottu`, `sound koottu`, `koottu` | `"volume up"`, `"louder"`, `"increase volume"` |
-| **🔉 Volume Down** | `"ശബ്ദം കുറയ്ക്കൂ"`, `"സൗണ്ട് കുറയ്ക്കൂ"`, `"കുറയ്ക്കൂ"`, `"പതുക്കെ"` | `shabdham kurakku`, `kurakku`, `pathukke` | `"volume down"`, `"quieter"`, `"lower volume"` |
-| **❤️ Like / Save** | `"ഇഷ്ടമായി"`, `"ഇഷ്ടപ്പെട്ടു"`, `"നല്ല പാട്ട്"`, `"പൊളി പാട്ട്"` | `ishtamayi`, `ishtapettu`, `nalla pattu`, `poli pattu` | `"save"`, `"like"`, `"save song"`, `"like song"` |
-| **📷 Camera ON** | `"ക്യാമറ ഓൺ"`, `"ക്യാമറ തുറക്കൂ"` | `camera on`, `camera thurakku` | `"camera on"`, `"turn on camera"`, `"gestures on"` |
-| **🔒 Camera OFF** | `"ക്യാമറ ഓഫ്"`, `"ക്യാമറ നിർത്തൂ"`, `"ക്യാമറ അടക്കൂ"` | `camera off`, `camera nirthu`, `camera adakku` | `"camera off"`, `"turn off camera"`, `"gestures off"` |
+| `PLAY_PAUSE` | `പാട്ട് വെക്കൂ`, `പാടൂ`, `നിർത്തൂ`, `മതി`, `നില്ല്` | `pattu vekku`, `padu`, `nirthu`, `mathi`, `nillu` | `play`, `pause`, `stop`, `resume` |
+| `NEXT_TRACK` | `അടുത്ത പാട്ട്`, `അടുത്തത്`, `മാറ്റൂ`, `വേറെ പാട്ട്` | `adutha pattu`, `aduthathu`, `maattu`, `vere pattu` | `next`, `skip`, `next song`, `forward` |
+| `PREV_TRACK` | `മുമ്പത്തെ പാട്ട്`, `കഴിഞ്ഞ പാട്ട്`, `പിന്നോട്ട്` | `mumbathe pattu`, `kazhinja pattu`, `pinnottu` | `previous`, `back`, `go back`, `last song` |
+| `VOL_UP` | `ശബ്ദം കൂട്ടൂ`, `സൗണ്ട് കൂട്ടൂ`, `കൂട്ടൂ`, `ഒച്ച കൂട്ടൂ` | `shabdham koottu`, `sound koottu`, `koottu` | `volume up`, `louder`, `increase volume` |
+| `VOL_DOWN` | `ശബ്ദം കുറയ്ക്കൂ`, `സൗണ്ട് കുറയ്ക്കൂ`, `കുറയ്ക്കൂ`, `പതുക്കെ` | `shabdham kurakku`, `kurakku`, `pathukke` | `volume down`, `quieter`, `lower volume` |
+| `SAVE_TRACK` | `ഇഷ്ടമായി`, `ഇഷ്ടപ്പെട്ടു`, `നല്ല പാട്ട്`, `പൊളി പാട്ട്` | `ishtamayi`, `ishtapettu`, `nalla pattu`, `poli pattu` | `save`, `like`, `save song`, `like song` |
+| `CAM_ATTACH` | `ക്യാമറ ഓൺ`, `ക്യാമറ തുറക്കൂ` | `camera on`, `camera thurakku` | `camera on`, `turn on camera`, `gestures on` |
+| `CAM_DETACH` | `ക്യാമറ ഓഫ്`, `ക്യാമറ നിർത്തൂ`, `ക്യാമറ അടക്കൂ` | `camera off`, `camera nirthu`, `camera adakku` | `camera off`, `turn off camera`, `gestures off` |
 
 ---
 
-## 🖐️ Hand Gesture Mappings
+## 0x05 // VISION ENGINE & 90-D FEATURE VECTORIZATION
 
-When camera mode is enabled (via `"camera on"` or `./venv/bin/python main.py --show`), Musewave recognizes both your custom-trained poses in `gesture_config.json` and rotation-invariant geometric poses:
+### Gesture Table
 
-| Gesture | Hand Pose | Mapped Action | Recognition Method |
+| Profile ID | Topology | Target Opcode | Solver |
 | :--- | :--- | :--- | :--- |
-| **✊ Fist (`pause`)** | All fingers curled into palm | **Play / Pause** | 90-D Cosine Similarity |
-| **✌️ 2 Fingers Right (`next`)** | Index + Middle extended, tilted right | **Next Track** | Rotation-Invariant Vector + Cosine |
-| **✌️ 2 Fingers Left (`prev`)** | Index + Middle extended, tilted left | **Previous Track** | Rotation-Invariant Vector + Cosine |
-| **🖐️ Back of Palm (`volume up`)** | All 5 fingers open / spread | **Volume Up (`+10%`)** | 90-D Cosine Similarity |
-| **☝️ 1 Index Finger (`volume down`)** | Single index finger pointing up | **Volume Down (`-10%`)** | Geometric Curl Rule + Cosine |
-| **👍 / 🫰 Thumb Up or Korean Heart** | Thumb extended **or** Thumb+Index crossed | **Like / Save Song** | 90-D Cosine + Built-in Hold Detector |
+| `pause` | Closed fist (all 5 digits curled) | `PLAY_PAUSE` | 90-D Top-3 Cosine (`>= 0.82`) |
+| `next` | Index + Middle extended, positive X-tilt | `NEXT_TRACK` | Collinearity Solver + 90-D Cosine |
+| `prev` | Index + Middle extended, negative X-tilt | `PREV_TRACK` | Collinearity Solver + 90-D Cosine |
+| `volume up` | 5 digits extended (open palm / dorsal) | `VOL_UP` | 90-D Top-3 Cosine (`>= 0.82`) |
+| `volume down` | Single index extended (`dy(4,8) > 0.40`) | `VOL_DOWN` | Geometric Gate + 90-D Cosine |
+| `save` | Thumb extended OR Thumb+Index crossed | `SAVE_TRACK` | 90-D Cosine + 1.5s Hold Buffer |
 
----
+### Feature Vector Construction
 
-## 🔬 Under The Hood: 90-D Feature Engineering
-
-Standard 63-D MediaPipe landmark vectors struggle when the wrist rotates slightly in 3D space. Musewave enhances raw landmarks with **2.5× weighted finger-curl vectors** (`MCP → TIP` and `PIP → TIP`) plus rotation-invariant vector dot-products:
+Raw 21-point MediaPipe coordinates $(x_i, y_i, z_i)$ are invariant-normalized relative to the wrist origin $P_0$ and scaled by the palm span $\|P_9 - P_0\|_2$. To prevent cross-talk between open-palm and partial-finger poses, 9 articulation vectors (`MCP -> TIP` and `PIP -> TIP`) are weighted by $\alpha = 2.5$ and concatenated into a 90-dimensional feature vector:
 
 ```python
 def _to_feature(vec: np.ndarray) -> np.ndarray:
-    """Enhance 63-d wrist-normalised landmarks with 27-d finger-curl vectors (90-d total)."""
     pts = np.asarray(vec, dtype=float).reshape(21, 3)
     fingers = np.concatenate([
         pts[4] - pts[2],   pts[8] - pts[5],   pts[12] - pts[9],  pts[16] - pts[13], pts[20] - pts[17],
@@ -152,75 +148,79 @@ def _to_feature(vec: np.ndarray) -> np.ndarray:
     return np.concatenate([pts.flatten(), fingers * 2.5])
 ```
 
-And for 2-finger directional gestures (`next` vs `prev`), extension is verified independent of camera rotation using collinearity between `MCP → PIP` ($\vec{v}_1$) and `PIP → TIP` ($\vec{v}_2$):
+### Rotation-Invariant Digit Extension Check
 
-$$\cos\theta = \frac{\vec{v}_1 \cdot \vec{v}_2}{\|\vec{v}_1\| \|\vec{v}_2\|} > 0.50 \quad \land \quad \|\text{TIP} - \text{WRIST}\| > \|\text{PIP} - \text{WRIST}\| + 0.15$$
+To classify 2-finger directional poses (`next` vs `prev`) at arbitrary wrist angles ($0^\circ \dots 90^\circ$), digit extension is evaluated via radial distance from the wrist origin and segment collinearity between $\vec{v}_1 = P_{\text{PIP}} - P_{\text{MCP}}$ and $\vec{v}_2 = P_{\text{TIP}} - P_{\text{PIP}}$:
+
+$$\frac{\vec{v}_1 \cdot \vec{v}_2}{\|\vec{v}_1\|_2 \, \|\vec{v}_2\|_2} > 0.50 \quad \land \quad \|P_{\text{TIP}} - P_0\|_2 - \|P_{\text{PIP}} - P_0\|_2 > 0.15$$
 
 ---
 
-## 🚀 Quickstart
+## 0x06 // BUILD & EXECUTION
 
-### 1. Clone & Set Up Virtual Environment
+### 1. Dependencies
+
 ```bash
+# System packages (Ubuntu / Debian)
+sudo apt update && sudo apt install -y playerctl alsa-utils libnotify-bin
+
+# Python environment
 git clone https://github.com/uditya22-flux/spotify__.git
 cd spotify__
-
 python3 -m venv venv
 ./venv/bin/pip install opencv-python mediapipe numpy SpeechRecognition python-dotenv
 ```
 
-### 2. Install System Media Tools (Ubuntu / Debian)
-```bash
-sudo apt install playerctl alsa-utils libnotify-bin
-```
+### 2. Runtime Modes
 
-### 3. Run Musewave
 ```bash
-# Default: Voice-First Mode (Webcam OFF — English + Malayalam active)
+# [MODE 1] Headless Voice-First Daemon (Webcam OFF by default)
 ./venv/bin/python main.py
 
-# Voice + Live Camera HUD Overlay
+# [MODE 2] Voice + Live OpenCV Skeleton HUD (Webcam ON)
 ./venv/bin/python main.py --show
 
-# Train or Customize Hand Gestures
+# [MODE 3] Interactive Gesture Trainer (Record/Test custom 3D poses)
 ./venv/bin/python gesture_trainer.py
-```
 
-### 4. Optional: Enable Spicetify In-App Integration
-```bash
+# [MODE 4] Patch Spicetify with Musewave IPC Extension
 bash setup_spicetify.sh
 ```
-This installs [`spicetify_extension/musewave.js`](spicetify_extension/musewave.js) into Spicetify, adding a top-bar status indicator inside Spotify and enabling native one-gesture/one-voice **Liked Songs** saving.
+
+### 3. Trainer Keymap (`gesture_trainer.py`)
+
+```text
+MAIN MENU                          RECORDING STATE
+--------------------------------   --------------------------------
+[N]      Create new gesture        [R]      Capture 30 frames (2.5s)
+[T]      Live classifier test      [A]      Append multi-angle pass
+[L]      Inspect gesture table     [F]      Flush & write JSON
+[D]      Pop last gesture          [B]/[Q]  Abort / return to menu
+[Q]/[B]  Exit trainer
+```
 
 ---
 
-## 📂 Project Structure
+## 0x07 // FILE MANIFEST
 
 ```text
 spotify__/
-├── main.py                        # Core event loop (Voice-First + dynamic Webcam state machine)
-├── voice_controller.py            # ALSA/PipeWire VAD + parallel en-IN / ml-IN speech engine
-├── gesture_detector.py            # 90-D feature extractor, geometric rules & cosine classifier
-├── gesture_trainer.py             # Interactive OpenCV HUD for recording custom hand gestures
-├── spotify_controller.py          # MPRIS2 (Spotify/YouTube) router, PipeWire volume & Spicetify IPC server
-├── gesture_config.json            # Trained 3D hand landmark samples
+├── main.py                        # Core daemon loop & V4L2 / Voice state machine
+├── voice_controller.py            # ALSA/PipeWire PCM reader, adaptive VAD & dual ASR
+├── gesture_detector.py            # 90-D feature pipeline & cosine/geometric classifiers
+├── gesture_trainer.py             # OpenCV sample recorder & live telemetry HUD
+├── spotify_controller.py          # MPRIS2 target router, wpctl volume & :19745 HTTP server
+├── gesture_config.json            # Serialized 63-D landmark training matrices
 ├── spicetify_extension/
-│   └── musewave.js                # Spicetify extension for native Spotify Liked Songs & toasts
-├── setup_spicetify.sh             # Zero-sudo Spicetify workspace patcher
-├── launch_with_spotify.sh         # Auto-starts Musewave when Spotify opens & stops when it closes
-├── spotify.desktop                # Desktop launcher entry for seamless background startup
+│   └── musewave.js                # Injected Spicetify client bridge
+├── setup_spicetify.sh             # User-space Spicetify patcher (no root required)
+├── launch_with_spotify.sh         # Process watchdog tied to Spotify lifecycle
+├── spotify.desktop                # XDG desktop entry for automatic daemon attach
 └── LICENSE                        # MIT License
 ```
 
 ---
 
-## 📜 License
+## 0x08 // LICENSE
 
-Released under the **[MIT License](LICENSE)** — Copyright © 2026 **Uditya Krishna**.
-
-<div align="center">
-
-**Built with MediaPipe · OpenCV · SpeechRecognition · PipeWire · Spicetify**  
-**[⭐ Star this repo on GitHub](https://github.com/uditya22-flux/spotify__)**
-
-</div>
+Distributed under the **[MIT License](LICENSE)**. Copyright (c) 2026 **Uditya Krishna**.
