@@ -28,3 +28,4 @@ Repository = "https://github.com/uditya22-flux/spotify__.git"
 [project.scripts]
 musewave = "main:main"
 musewave-train = "gesture_trainer:main"
+

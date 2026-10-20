@@ -3,7 +3,7 @@ voice_controller.py — Real-Time Voice Command Controller (English + Malayalam)
 ==============================================================================
 Listens for voice commands in English, Malayalam (മലയാളം), and Manglish
 using ALSA/PipeWire (`arecord`) + SpeechRecognition (`en-IN` and `ml-IN`)
-so the webcam stays completely OFF by default.
+so the webcam stays completely OFF by default for hardware privacy and safety.
 
 Supported Voice Commands (English & Malayalam):
   - Play / Pause:

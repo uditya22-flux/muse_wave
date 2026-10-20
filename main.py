@@ -1,7 +1,8 @@
 """
-main.py  — Spotify Gesture Controller  (Custom Gesture Edition)
-===============================================================
-Controls music using gestures you train yourself via gesture_trainer.py
+main.py  — Spotify Voice & Gesture Controller (Privacy-First Edition)
+=====================================================================
+Controls music using voice commands (camera OFF by default for privacy)
+and hand gestures you train yourself via gesture_trainer.py
 
 Built-in gestures (always active):
   ❤️  Heart shape (2 hands)     → Play / Pause  (hold 1.5s)

@@ -119,3 +119,4 @@ jobs:
             dist/musewave-2.0.0-windows-x64.zip
             dist/SHA256SUMS.txt
           generate_release_notes: true
+

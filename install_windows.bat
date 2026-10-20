@@ -34,3 +34,4 @@ echo   INSTALLATION COMPLETE!
 echo   Double-click "run_musewave.bat" to launch Musewave.
 echo ============================================================
 pause
+

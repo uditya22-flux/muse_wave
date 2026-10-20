@@ -15,3 +15,4 @@ setup(
         ("musewave/spicetify_extension", ["spicetify_extension/musewave.js"]),
     ],
 )
+
