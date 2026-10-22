@@ -1,38 +1,26 @@
 <div align="center">
 
-```text
-███╗   ███╗██╗   ██╗███████╗███████╗██╗    ██╗ █████╗ ██╗   ██╗███████╗
-████╗ ████║██║   ██║██╔════╝██╔════╝██║    ██║██╔══██╗██║   ██║██╔════╝
-██╔████╔██║██║   ██║███████╗█████╗  ██║ █╗ ██║███████║██║   ██║█████╗  
-██║╚██╔╝██║██║   ██║╚════██║██╔══╝  ██║███╗██║██╔══██║╚██╗ ██╔╝██╔══╝  
-██║ ╚═╝ ██║╚██████╔╝███████║███████╗╚███╔███╔╝██║  ██║ ╚████╔╝ ███████╗
-╚═╝     ╚═╝ ╚═════╝ ╚══════╝╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝  ╚═══╝  ╚══════╝
-                 [ BUILD // 2.0.0-LINUX-X86_64 // MIT ]
-```
+<img src="assets/hero_banner.svg" alt="MUSEWAVE Animated Banner" width="100%" />
 
-** Touchless Media Daemon for Linux — Bilingual ASR (`en-IN` / `ml-IN`), 90-D Hand-Pose Geometry & Spicetify IPC **  
+<br/>
+
+**Touchless Media Daemon for Linux & Windows — Bilingual ASR (`en-IN` / `ml-IN`), 90-D Hand-Pose Geometry & Spicetify IPC**  
 `NO_WEB_API` · `NO_PREMIUM_REQUIRED` · `ZERO_TELEMETRY` · `CAMERA_OFF_BY_DEFAULT`
 
 [![python](https://img.shields.io/badge/python-3.10%2B-111111?style=flat-square&logo=python&logoColor=white)](https://python.org)
-[![platform](https://img.shields.io/badge/platform-linux%20%7C%20pipewire%20%7C%20mpris2-111111?style=flat-square&logo=linux&logoColor=white)](https://kernel.org)
+[![platform](https://img.shields.io/badge/platform-linux%20%7C%20windows%20%7C%20mpris2-111111?style=flat-square&logo=linux&logoColor=white)](https://github.com/uditya22-flux/muse_wave/releases)
 [![vision](https://img.shields.io/badge/vision-mediapipe%20%2B%20opencv-111111?style=flat-square&logo=opencv&logoColor=white)](https://mediapipe.dev)
 [![ipc](https://img.shields.io/badge/ipc-spicetify%20bridge%20:19745-111111?style=flat-square&logo=spotify&logoColor=1DB954)](https://spicetify.app)
+[![release](https://img.shields.io/badge/release-v2.0.0%20(.deb%20%7C%20.zip%20%7C%20.tar.gz)-111111?style=flat-square&logo=github&logoColor=00F0FF)](https://github.com/uditya22-flux/muse_wave/releases/tag/v2.0.0)
 [![license](https://img.shields.io/badge/license-MIT-111111?style=flat-square)](LICENSE)
 
 </div>
 
 ---
 
-```text
-$ ./venv/bin/python main.py
-[07:45:01.104] [INFO] sys.init         :: bootstrapping musewave daemon (pid=41892)
-[07:45:01.112] [INFO] audio.vad        :: opened pcm capture stream [dev=plughw:0,7 rate=16000Hz fmt=S16_LE ch=1]
-[07:45:01.118] [INFO] asr.engine       :: dual-thread recognizer online [workers=en-IN,ml-IN]
-[07:45:01.120] [INFO] video.v4l2       :: /dev/video0 state=RELEASED (hardware led=OFF; say 'camera on' to attach)
-[07:45:01.125] [INFO] ipc.spicetify    :: http bridge bound to 127.0.0.1:19745/poll
-[07:45:01.129] [INFO] mpris.router     :: bus active -> org.mpris.MediaPlayer2.spotify
-[07:45:01.130] [READY]                 :: listening on stdin/mic_
-```
+<div align="center">
+  <img src="assets/terminal_demo.svg" alt="Musewave Live Telemetry & 21-Point Hand Skeleton Animation" width="100%" />
+</div>
 
 ---
 

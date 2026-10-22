@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 340" width="100%" height="340">
+  <defs>
+    <linearGradient id="termBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#080b10"/>
+      <stop offset="100%" stop-color="#0c1118"/>
+    </linearGradient>
+    <filter id="nodeGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.5" result="b"/>
+      <feComposite in="SourceGraphic" in2="b" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Outer Frame -->
+  <rect width="960" height="340" rx="8" fill="url(#termBg)" stroke="#1e293b" stroke-width="1.5"/>
+
+  <!-- Window Titlebar -->
+  <rect x="0" y="0" width="960" height="32" rx="8" fill="#111822"/>
+  <circle cx="20" cy="16" r="5" fill="#ef4444"/>
+  <circle cx="36" cy="16" r="5" fill="#f59e0b"/>
+  <circle cx="52" cy="16" r="5" fill="#1DB954"/>
+  <text x="480" y="20" font-family="monospace" font-size="11.5" fill="#94a3b8" text-anchor="middle">
+    musewave@daemon:~ // LIVE TELEMETRY &amp; 90-D HAND-POSE CLASSIFIER
+  </text>
+
+  <!-- Vertical Divider -->
+  <line x1="600" y1="32" x2="600" y2="340" stroke="#1e293b" stroke-width="1.5"/>
+
+  <!-- LEFT PANE: Animated Terminal Logs -->
+  <g font-family="monospace" font-size="11.5">
+    <text x="20" y="60" fill="#1DB954">$ ./venv/bin/python main.py</text>
+    <text x="20" y="84" fill="#64748b">[07:45:01.104] [INFO] sys.init      :: bootstrapping musewave daemon (pid=41892)</text>
+    <text x="20" y="106" fill="#64748b">[07:45:01.112] [INFO] audio.vad     :: pcm stream [16000Hz S16_LE mono] active</text>
+    <text x="20" y="128" fill="#00F0FF">[07:45:01.120] [INFO] video.v4l2    :: /dev/video0 state=RELEASED (LED=OFF)</text>
+    <text x="20" y="150" fill="#64748b">[07:45:01.125] [INFO] ipc.spicetify :: bridge bound -&gt; 127.0.0.1:19745/poll</text>
+
+    <!-- Animated Command 1 -->
+    <g>
+      <animate attributeName="opacity" values="0;0;1;1;1;0" keyTimes="0;0.15;0.2;0.85;0.95;1" dur="9s" repeatCount="indefinite"/>
+      <text x="20" y="182" fill="#f8fafc">[07:45:04.210] [ASR]  ml-IN         :: heard "അടുത്ത പാട്ട്" (adutha pattu)</text>
+      <text x="20" y="202" fill="#1DB954">[07:45:04.214] [EXEC] mpris.spotify :: dispatch -&gt; NEXT_TRACK [OK]</text>
+    </g>
+
+    <!-- Animated Command 2 -->
+    <g>
+      <animate attributeName="opacity" values="0;0;1;1;1;0" keyTimes="0;0.38;0.43;0.85;0.95;1" dur="9s" repeatCount="indefinite"/>
+      <text x="20" y="234" fill="#f8fafc">[07:45:07.890] [ASR]  en-IN         :: heard "camera on"</text>
+      <text x="20" y="254" fill="#00F0FF">[07:45:07.902] [V4L2] /dev/video0   :: state=ATTACHED (90-D k-NN solver online)</text>
+    </g>
+
+    <!-- Animated Command 3 -->
+    <g>
+      <animate attributeName="opacity" values="0;0;1;1;1;0" keyTimes="0;0.62;0.67;0.85;0.95;1" dur="9s" repeatCount="indefinite"/>
+      <text x="20" y="286" fill="#1DB954">[07:45:10.440] [POSE] knn.90d       :: match="next" (cosine=0.972, collinear=TRUE)</text>
+      <text x="20" y="306" fill="#f59e0b">[07:45:12.110] [ASR]  en-IN         :: heard "save song" -&gt; Spicetify.toggleHeart()</text>
+    </g>
+
+    <!-- Blinking Cursor -->
+    <rect x="20" y="316" width="8" height="13" fill="#1DB954">
+      <animate attributeName="opacity" values="1;0;1" dur="0.9s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+
+  <!-- RIGHT PANE: Animated 21-Point Hand Skeleton HUD -->
+  <g>
+    <text x="780" y="56" font-family="monospace" font-size="11" fill="#00F0FF" text-anchor="middle" letter-spacing="1.5">
+      [ 21-NODE HAND SKELETON // 90-D ]
+    </text>
+
+    <!-- HUD Target Reticle -->
+    <circle cx="780" cy="185" r="95" fill="none" stroke="#1e293b" stroke-width="1" stroke-dasharray="4 4"/>
+    <circle cx="780" cy="185" r="65" fill="none" stroke="#1DB954" stroke-width="0.7" stroke-opacity="0.3"/>
+
+    <!-- Hand Skeleton Wireframe Connections -->
+    <g stroke="#1DB954" stroke-width="2" stroke-opacity="0.8" fill="none">
+      <!-- Wrist (780,255) to MCPs -->
+      <polyline points="780,255 730,220 710,190 700,170"/>
+      <polyline points="780,255 752,190 748,145 745,112"/>
+      <polyline points="780,255 778,185 778,135 778,98"/>
+      <polyline points="780,255 804,192 812,165 815,152"/>
+      <polyline points="780,255 826,205 835,182 838,168"/>
+      <!-- Palm Crossbar -->
+      <polyline points="752,190 778,185 804,192 826,205" stroke="#00F0FF" stroke-width="1.2" stroke-opacity="0.5"/>
+    </g>
+
+    <!-- 21 Landmarks (Glowing Nodes) -->
+    <g filter="url(#nodeGlow)" fill="#00F0FF">
+      <!-- Wrist -->
+      <circle cx="780" cy="255" r="5" fill="#1DB954">
+        <animate attributeName="r" values="4;6.5;4" dur="1.5s" repeatCount="indefinite"/>
+      </circle>
+      <!-- Thumb -->
+      <circle cx="730" cy="220" r="3.5"/>
+      <circle cx="710" cy="190" r="3.5"/>
+      <circle cx="700" cy="170" r="4"/>
+      <!-- Index (Extended) -->
+      <circle cx="752" cy="190" r="3.5"/>
+      <circle cx="748" cy="145" r="3.5"/>
+      <circle cx="745" cy="112" r="5" fill="#1DB954">
+        <animate attributeName="r" values="4;7;4" dur="1.2s" repeatCount="indefinite"/>
+      </circle>
+      <!-- Middle (Extended) -->
+      <circle cx="778" cy="185" r="3.5"/>
+      <circle cx="778" cy="135" r="3.5"/>
+      <circle cx="778" cy="98" r="5" fill="#1DB954">
+        <animate attributeName="r" values="4;7;4" dur="1.2s" repeatCount="indefinite"/>
+      </circle>
+      <!-- Ring (Curled) -->
+      <circle cx="804" cy="192" r="3.5"/>
+      <circle cx="812" cy="165" r="3.5"/>
+      <circle cx="815" cy="152" r="3.5"/>
+      <!-- Pinky (Curled) -->
+      <circle cx="826" cy="205" r="3.5"/>
+      <circle cx="835" cy="182" r="3.5"/>
+      <circle cx="838" cy="168" r="3.5"/>
+    </g>
+
+    <!-- Radar Scan Bar over Skeleton -->
+    <line x1="640" y1="80" x2="920" y2="80" stroke="#00F0FF" stroke-width="1.5" stroke-opacity="0.65">
+      <animate attributeName="y1" values="85;275;85" dur="3.2s" repeatCount="indefinite"/>
+      <animate attributeName="y2" values="85;275;85" dur="3.2s" repeatCount="indefinite"/>
+    </line>
+
+    <!-- Bottom HUD Readout -->
+    <rect x="630" y="294" width="300" height="28" rx="4" fill="#091914" stroke="#1DB954" stroke-width="1"/>
+    <text x="780" y="312" font-family="monospace" font-size="11" fill="#1DB954" text-anchor="middle">
+      LOCKED: "NEXT" // CONFIDENCE: 97.2%
+    </text>
+  </g>
+</svg>
