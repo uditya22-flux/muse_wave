@@ -33,8 +33,8 @@ jobs:
           Priority: optional
           Architecture: all
           Depends: python3 (>= 3.10), python3-venv, python3-pip, playerctl, alsa-utils, libnotify-bin
-          Maintainer: Uditya <https://github.com/uditya22-flux/spotify__>
-          Homepage: https://github.com/uditya22-flux/spotify__
+          Maintainer: Uditya <https://github.com/uditya22-flux/muse_wave>
+          Homepage: https://github.com/uditya22-flux/muse_wave
           Description: Multimodal Voice & Hand-Gesture Media Daemon for Spotify & YouTube
            Low-latency, privacy-first local daemon combining parallel bilingual ASR
            (en-IN + ml-IN) with a 21-point MediaPipe hand-skeleton k-NN classifier,

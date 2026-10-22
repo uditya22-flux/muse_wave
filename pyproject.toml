@@ -22,8 +22,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/uditya22-flux/spotify__"
-Repository = "https://github.com/uditya22-flux/spotify__.git"
+Homepage = "https://github.com/uditya22-flux/muse_wave"
+Repository = "https://github.com/uditya22-flux/muse_wave.git"
 
 [project.scripts]
 musewave = "main:main"

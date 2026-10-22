@@ -56,9 +56,9 @@ $ ./venv/bin/python main.py
 | **`gesture`** | Vision-Only | MediaPipe 90-D cosine matcher + interactive OpenCV gesture trainer (`gesture_trainer.py`) |
 
 ```bash
-git clone -b main    https://github.com/uditya22-flux/spotify__.git  # hybrid (voice + gesture)
-git clone -b voice   https://github.com/uditya22-flux/spotify__.git  # voice-only branch
-git clone -b gesture https://github.com/uditya22-flux/spotify__.git  # gesture-only branch
+git clone -b main    https://github.com/uditya22-flux/muse_wave.git  # hybrid (voice + gesture)
+git clone -b voice   https://github.com/uditya22-flux/muse_wave.git  # voice-only branch
+git clone -b gesture https://github.com/uditya22-flux/muse_wave.git  # gesture-only branch
 ```
 
 ---
@@ -165,8 +165,8 @@ $$\frac{\vec{v}_1 \cdot \vec{v}_2}{\|\vec{v}_1\|_2 \, \|\vec{v}_2\|_2} > 0.50 \q
 sudo apt update && sudo apt install -y playerctl alsa-utils libnotify-bin
 
 # Python environment
-git clone https://github.com/uditya22-flux/spotify__.git
-cd spotify__
+git clone https://github.com/uditya22-flux/muse_wave.git
+cd muse_wave
 python3 -m venv venv
 ./venv/bin/pip install opencv-python mediapipe numpy SpeechRecognition python-dotenv
 ```
@@ -204,7 +204,7 @@ MAIN MENU                          RECORDING STATE
 ## 0x07 // FILE MANIFEST
 
 ```text
-spotify__/
+muse_wave/
 ├── main.py                        # Core daemon loop & V4L2 / Voice state machine
 ├── voice_controller.py            # ALSA/PipeWire PCM reader, adaptive VAD & dual ASR
 ├── gesture_detector.py            # 90-D feature pipeline & cosine/geometric classifiers
