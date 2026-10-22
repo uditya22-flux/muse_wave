@@ -11,7 +11,7 @@
 [![platform](https://img.shields.io/badge/platform-linux%20%7C%20windows%20%7C%20mpris2-111111?style=flat-square&logo=linux&logoColor=white)](https://github.com/uditya22-flux/muse_wave/releases)
 [![vision](https://img.shields.io/badge/vision-mediapipe%20%2B%20opencv-111111?style=flat-square&logo=opencv&logoColor=white)](https://mediapipe.dev)
 [![ipc](https://img.shields.io/badge/ipc-spicetify%20bridge%20:19745-111111?style=flat-square&logo=spotify&logoColor=1DB954)](https://spicetify.app)
-[![release](https://img.shields.io/badge/release-v2.0.0%20(.deb%20%7C%20.zip%20%7C%20.tar.gz)-111111?style=flat-square&logo=github&logoColor=00F0FF)](https://github.com/uditya22-flux/muse_wave/releases/tag/v2.0.0)
+[![release](https://img.shields.io/badge/release-v2.0.0%20(.deb%20%7C%20.zip%20%7C%20.tar.gz)-111111?style=flat-square&logo=github&logoColor=white)](https://github.com/uditya22-flux/muse_wave/releases/tag/v2.0.0)
 [![license](https://img.shields.io/badge/license-MIT-111111?style=flat-square)](LICENSE)
 
 </div>

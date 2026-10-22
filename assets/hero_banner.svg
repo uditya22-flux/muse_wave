@@ -1,115 +1,67 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 280" width="100%" height="280">
-  <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#07090e"/>
-      <stop offset="50%" stop-color="#0b1017"/>
-      <stop offset="100%" stop-color="#070b0a"/>
-    </linearGradient>
-    <linearGradient id="neonGreen" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#1DB954"/>
-      <stop offset="50%" stop-color="#00F0FF"/>
-      <stop offset="100%" stop-color="#1DB954"/>
-    </linearGradient>
-    <linearGradient id="barGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-      <stop offset="0%" stop-color="#1DB954" stop-opacity="0.15"/>
-      <stop offset="60%" stop-color="#1DB954" stop-opacity="0.75"/>
-      <stop offset="100%" stop-color="#00F0FF" stop-opacity="0.95"/>
-    </linearGradient>
-    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
-      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#1DB954" stroke-width="0.4" stroke-opacity="0.12"/>
-    </pattern>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="3.5" result="blur"/>
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-    </filter>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 210" width="100%" height="210">
+  <!-- Clean flat terminal frame -->
+  <rect width="960" height="210" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
 
-  <!-- Background & Cyber Grid -->
-  <rect width="960" height="280" rx="10" fill="url(#bgGrad)" stroke="#1e293b" stroke-width="1.5"/>
-  <rect width="960" height="280" rx="10" fill="url(#grid)"/>
-
-  <!-- Animated Scanning Laser Line -->
-  <line x1="0" y1="0" x2="960" y2="0" stroke="#00F0FF" stroke-width="1.2" stroke-opacity="0.35">
-    <animate attributeName="y1" values="0;280;0" dur="7s" repeatCount="indefinite"/>
-    <animate attributeName="y2" values="0;280;0" dur="7s" repeatCount="indefinite"/>
-  </line>
-
-  <!-- Top Telemetry Bar -->
-  <rect x="16" y="14" width="928" height="28" rx="4" fill="#0d131c" stroke="#1e293b" stroke-width="1"/>
-  <circle cx="32" cy="28" r="4.5" fill="#1DB954">
-    <animate attributeName="opacity" values="1;0.25;1" dur="1.6s" repeatCount="indefinite"/>
+  <!-- Top status bar (tmux style) -->
+  <rect x="1" y="1" width="958" height="26" rx="5" fill="#161b22"/>
+  <line x1="0" y1="27" x2="960" y2="27" stroke="#30363d" stroke-width="1"/>
+  <circle cx="18" cy="14" r="3.5" fill="#3fb950">
+    <animate attributeName="opacity" values="1;0.35;1" dur="2s" repeatCount="indefinite"/>
   </circle>
-  <text x="45" y="32" font-family="monospace" font-size="11" fill="#94a3b8" letter-spacing="1">
-    DAEMON::ONLINE // PID:41892 // IPC:127.0.0.1:19745
+  <text x="30" y="18" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="11" fill="#8b949e">
+    musewave.service — active (running) — pid 41892
   </text>
-  <text x="930" y="32" font-family="monospace" font-size="11" fill="#00F0FF" text-anchor="end" letter-spacing="1">
-    [ LINUX_X86_64 | WIN32_NT | MIT ]
+  <text x="944" y="18" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="11" fill="#6e7681" text-anchor="end">
+    v2.0.0 | linux-x86_64 · win32
   </text>
 
-  <!-- Main Glitch/Cyber Title -->
-  <g filter="url(#glow)">
-    <text x="480" y="112" font-family="monospace" font-size="56" font-weight="bold" fill="url(#neonGreen)" text-anchor="middle" letter-spacing="14">
-      MUSEWAVE
-    </text>
+  <!-- Minimalist Developer Typography -->
+  <text x="40" y="84" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="38" font-weight="700" fill="#e6edf3" letter-spacing="4">
+    musewave
+  </text>
+  <text x="275" y="82" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="13" fill="#6e7681">
+    // local audio &amp; hand-pose media daemon
+  </text>
+
+  <text x="40" y="114" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="12.5" fill="#8b949e">
+    alsa/pipewire 16kHz vad · bilingual asr (en-IN / ml-IN) · 90-d mediapipe k-nn · mpris2 &amp; spicetify ipc
+  </text>
+
+  <!-- Subtle terminal metadata tags -->
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="11" fill="#c9d1d9">
+    <rect x="40" y="134" width="148" height="22" rx="3" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+    <text x="50" y="149" fill="#8b949e">mic:</text>
+    <text x="82" y="149" fill="#c9d1d9">16kHz S16_LE</text>
+
+    <rect x="198" y="134" width="154" height="22" rx="3" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+    <text x="208" y="149" fill="#8b949e">cam:</text>
+    <text x="240" y="149" fill="#c9d1d9">/dev/video0 off</text>
+
+    <rect x="362" y="134" width="166" height="22" rx="3" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+    <text x="372" y="149" fill="#8b949e">ipc:</text>
+    <text x="404" y="149" fill="#c9d1d9">127.0.0.1:19745</text>
+
+    <rect x="538" y="134" width="130" height="22" rx="3" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+    <text x="548" y="149" fill="#8b949e">license:</text>
+    <text x="606" y="149" fill="#c9d1d9">MIT</text>
   </g>
 
-  <!-- Subtitle -->
-  <text x="480" y="144" font-family="monospace" font-size="13.5" fill="#e2e8f0" text-anchor="middle" letter-spacing="2.5">
-    MULTIMODAL VOICE ASR (EN-IN / ML-IN) &amp; 90-D HAND-SKELETON MEDIA DAEMON
+  <!-- Subtle monochrome PCM dB meter at bottom -->
+  <text x="40" y="188" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="10.5" fill="#6e7681">
+    pcm_rms [-38.4 dB]
   </text>
-
-  <!-- Status Pills -->
-  <g font-family="monospace" font-size="11" text-anchor="middle">
-    <rect x="135" y="162" width="160" height="24" rx="3" fill="#091914" stroke="#1DB954" stroke-width="1"/>
-    <text x="215" y="178" fill="#1DB954">MIC: 16kHz PCM VAD</text>
-
-    <rect x="310" y="162" width="165" height="24" rx="3" fill="#091520" stroke="#00F0FF" stroke-width="1"/>
-    <text x="392" y="178" fill="#00F0FF">CAM: HW-LOCKED OFF</text>
-
-    <rect x="490" y="162" width="165" height="24" rx="3" fill="#091914" stroke="#1DB954" stroke-width="1"/>
-    <text x="572" y="178" fill="#1DB954">POSE: 21x3D COSINE</text>
-
-    <rect x="670" y="162" width="155" height="24" rx="3" fill="#091520" stroke="#00F0FF" stroke-width="1"/>
-    <text x="747" y="178" fill="#00F0FF">BRIDGE: SPICETIFY</text>
-  </g>
-
-  <!-- Animated 36-Bar Audio Spectrum Equalizer -->
-  <g fill="url(#barGrad)">
-    <rect x="120" y="230" width="12" height="35" rx="2"><animate attributeName="height" values="12;48;20;12" dur="1.1s" repeatCount="indefinite"/><animate attributeName="y" values="253;217;245;253" dur="1.1s" repeatCount="indefinite"/></rect>
-    <rect x="140" y="220" width="12" height="45" rx="2"><animate attributeName="height" values="38;15;54;38" dur="0.9s" repeatCount="indefinite"/><animate attributeName="y" values="227;250;211;227" dur="0.9s" repeatCount="indefinite"/></rect>
-    <rect x="160" y="210" width="12" height="55" rx="2"><animate attributeName="height" values="22;60;18;22" dur="1.3s" repeatCount="indefinite"/><animate attributeName="y" values="243;205;247;243" dur="1.3s" repeatCount="indefinite"/></rect>
-    <rect x="180" y="225" width="12" height="40" rx="2"><animate attributeName="height" values="50;18;42;50" dur="0.8s" repeatCount="indefinite"/><animate attributeName="y" values="215;247;223;215" dur="0.8s" repeatCount="indefinite"/></rect>
-    <rect x="200" y="215" width="12" height="50" rx="2"><animate attributeName="height" values="16;56;30;16" dur="1.2s" repeatCount="indefinite"/><animate attributeName="y" values="249;209;235;249" dur="1.2s" repeatCount="indefinite"/></rect>
-    <rect x="220" y="235" width="12" height="30" rx="2"><animate attributeName="height" values="44;14;52;44" dur="1.0s" repeatCount="indefinite"/><animate attributeName="y" values="221;251;213;221" dur="1.0s" repeatCount="indefinite"/></rect>
-    <rect x="240" y="210" width="12" height="55" rx="2"><animate attributeName="height" values="28;64;22;28" dur="0.75s" repeatCount="indefinite"/><animate attributeName="y" values="237;201;243;237" dur="0.75s" repeatCount="indefinite"/></rect>
-    <rect x="260" y="225" width="12" height="40" rx="2"><animate attributeName="height" values="58;20;46;58" dur="1.15s" repeatCount="indefinite"/><animate attributeName="y" values="207;245;219;207" dur="1.15s" repeatCount="indefinite"/></rect>
-    <rect x="280" y="220" width="12" height="45" rx="2"><animate attributeName="height" values="18;50;26;18" dur="0.95s" repeatCount="indefinite"/><animate attributeName="y" values="247;215;239;247" dur="0.95s" repeatCount="indefinite"/></rect>
-    <rect x="300" y="230" width="12" height="35" rx="2"><animate attributeName="height" values="46;16;60;46" dur="1.25s" repeatCount="indefinite"/><animate attributeName="y" values="219;249;205;219" dur="1.25s" repeatCount="indefinite"/></rect>
-    <rect x="320" y="215" width="12" height="50" rx="2"><animate attributeName="height" values="24;62;14;24" dur="0.85s" repeatCount="indefinite"/><animate attributeName="y" values="241;203;251;241" dur="0.85s" repeatCount="indefinite"/></rect>
-    <rect x="340" y="225" width="12" height="40" rx="2"><animate attributeName="height" values="54;22;38;54" dur="1.05s" repeatCount="indefinite"/><animate attributeName="y" values="211;243;227;211" dur="1.05s" repeatCount="indefinite"/></rect>
-    <rect x="360" y="210" width="12" height="55" rx="2"><animate attributeName="height" values="20;58;32;20" dur="0.9s" repeatCount="indefinite"/><animate attributeName="y" values="245;207;233;245" dur="0.9s" repeatCount="indefinite"/></rect>
-    <rect x="380" y="230" width="12" height="35" rx="2"><animate attributeName="height" values="62;18;48;62" dur="1.1s" repeatCount="indefinite"/><animate attributeName="y" values="203;247;217;203" dur="1.1s" repeatCount="indefinite"/></rect>
-    <rect x="400" y="220" width="12" height="45" rx="2"><animate attributeName="height" values="14;52;28;14" dur="0.8s" repeatCount="indefinite"/><animate attributeName="y" values="251;213;237;251" dur="0.8s" repeatCount="indefinite"/></rect>
-    <rect x="420" y="215" width="12" height="50" rx="2"><animate attributeName="height" values="48;24;64;48" dur="1.2s" repeatCount="indefinite"/><animate attributeName="y" values="217;241;201;217" dur="1.2s" repeatCount="indefinite"/></rect>
-    <rect x="440" y="225" width="12" height="40" rx="2"><animate attributeName="height" values="30;66;18;30" dur="0.7s" repeatCount="indefinite"/><animate attributeName="y" values="235;199;247;235" dur="0.7s" repeatCount="indefinite"/></rect>
-    <rect x="460" y="210" width="12" height="55" rx="2"><animate attributeName="height" values="64;20;52;64" dur="1.0s" repeatCount="indefinite"/><animate attributeName="y" values="201;245;213;201" dur="1.0s" repeatCount="indefinite"/></rect>
-    <rect x="480" y="220" width="12" height="45" rx="2"><animate attributeName="height" values="22;60;26;22" dur="0.95s" repeatCount="indefinite"/><animate attributeName="y" values="243;205;239;243" dur="0.95s" repeatCount="indefinite"/></rect>
-    <rect x="500" y="230" width="12" height="35" rx="2"><animate attributeName="height" values="56;16;44;56" dur="1.15s" repeatCount="indefinite"/><animate attributeName="y" values="209;249;221;209" dur="1.15s" repeatCount="indefinite"/></rect>
-    <rect x="520" y="215" width="12" height="50" rx="2"><animate attributeName="height" values="18;54;30;18" dur="0.85s" repeatCount="indefinite"/><animate attributeName="y" values="247;211;235;247" dur="0.85s" repeatCount="indefinite"/></rect>
-    <rect x="540" y="225" width="12" height="40" rx="2"><animate attributeName="height" values="50;22;62;50" dur="1.05s" repeatCount="indefinite"/><animate attributeName="y" values="215;243;203;215" dur="1.05s" repeatCount="indefinite"/></rect>
-    <rect x="560" y="210" width="12" height="55" rx="2"><animate attributeName="height" values="26;64;16;26" dur="0.9s" repeatCount="indefinite"/><animate attributeName="y" values="239;201;249;239" dur="0.9s" repeatCount="indefinite"/></rect>
-    <rect x="580" y="230" width="12" height="35" rx="2"><animate attributeName="height" values="60;18;46;60" dur="1.25s" repeatCount="indefinite"/><animate attributeName="y" values="205;247;219;205" dur="1.25s" repeatCount="indefinite"/></rect>
-    <rect x="600" y="220" width="12" height="45" rx="2"><animate attributeName="height" values="16;48;24;16" dur="0.8s" repeatCount="indefinite"/><animate attributeName="y" values="249;217;241;249" dur="0.8s" repeatCount="indefinite"/></rect>
-    <rect x="620" y="215" width="12" height="50" rx="2"><animate attributeName="height" values="44;14;56;44" dur="1.1s" repeatCount="indefinite"/><animate attributeName="y" values="221;251;209;221" dur="1.1s" repeatCount="indefinite"/></rect>
-    <rect x="640" y="225" width="12" height="40" rx="2"><animate attributeName="height" values="20;58;28;20" dur="0.95s" repeatCount="indefinite"/><animate attributeName="y" values="245;207;237;245" dur="0.95s" repeatCount="indefinite"/></rect>
-    <rect x="660" y="210" width="12" height="55" rx="2"><animate attributeName="height" values="52;20;40;52" dur="1.2s" repeatCount="indefinite"/><animate attributeName="y" values="213;245;225;213" dur="1.2s" repeatCount="indefinite"/></rect>
-    <rect x="680" y="230" width="12" height="35" rx="2"><animate attributeName="height" values="18;50;22;18" dur="0.85s" repeatCount="indefinite"/><animate attributeName="y" values="247;215;243;247" dur="0.85s" repeatCount="indefinite"/></rect>
-    <rect x="700" y="220" width="12" height="45" rx="2"><animate attributeName="height" values="48;16;58;48" dur="1.0s" repeatCount="indefinite"/><animate attributeName="y" values="217;249;207;217" dur="1.0s" repeatCount="indefinite"/></rect>
-    <rect x="720" y="215" width="12" height="50" rx="2"><animate attributeName="height" values="24;60;18;24" dur="1.15s" repeatCount="indefinite"/><animate attributeName="y" values="241;205;247;241" dur="1.15s" repeatCount="indefinite"/></rect>
-    <rect x="740" y="225" width="12" height="40" rx="2"><animate attributeName="height" values="54;18;42;54" dur="0.9s" repeatCount="indefinite"/><animate attributeName="y" values="211;247;223;211" dur="0.9s" repeatCount="indefinite"/></rect>
-    <rect x="760" y="230" width="12" height="35" rx="2"><animate attributeName="height" values="16;46;24;16" dur="1.05s" repeatCount="indefinite"/><animate attributeName="y" values="249;219;241;249" dur="1.05s" repeatCount="indefinite"/></rect>
-    <rect x="780" y="220" width="12" height="45" rx="2"><animate attributeName="height" values="40;14;50;40" dur="0.8s" repeatCount="indefinite"/><animate attributeName="y" values="225;251;215;225" dur="0.8s" repeatCount="indefinite"/></rect>
-    <rect x="800" y="215" width="12" height="50" rx="2"><animate attributeName="height" values="20;52;16;20" dur="1.2s" repeatCount="indefinite"/><animate attributeName="y" values="245;213;249;245" dur="1.2s" repeatCount="indefinite"/></rect>
-    <rect x="820" y="230" width="12" height="35" rx="2"><animate attributeName="height" values="36;12;44;36" dur="0.95s" repeatCount="indefinite"/><animate attributeName="y" values="229;253;221;229" dur="0.95s" repeatCount="indefinite"/></rect>
+  <g fill="#30363d">
+    <rect x="165" y="179" width="6" height="10" fill="#3fb950"><animate attributeName="opacity" values="0.9;0.4;0.9" dur="1.1s" repeatCount="indefinite"/></rect>
+    <rect x="175" y="179" width="6" height="10" fill="#3fb950"><animate attributeName="opacity" values="0.8;0.3;0.8" dur="0.9s" repeatCount="indefinite"/></rect>
+    <rect x="185" y="179" width="6" height="10" fill="#3fb950"><animate attributeName="opacity" values="0.4;0.9;0.4" dur="1.3s" repeatCount="indefinite"/></rect>
+    <rect x="195" y="179" width="6" height="10" fill="#3fb950"><animate attributeName="opacity" values="0.9;0.2;0.9" dur="0.8s" repeatCount="indefinite"/></rect>
+    <rect x="205" y="179" width="6" height="10" fill="#2ea043"><animate attributeName="opacity" values="0.2;0.85;0.2" dur="1.2s" repeatCount="indefinite"/></rect>
+    <rect x="215" y="179" width="6" height="10" fill="#2ea043"><animate attributeName="opacity" values="0.7;0.15;0.7" dur="1.0s" repeatCount="indefinite"/></rect>
+    <rect x="225" y="179" width="6" height="10" fill="#2ea043"><animate attributeName="opacity" values="0.15;0.75;0.15" dur="0.85s" repeatCount="indefinite"/></rect>
+    <rect x="235" y="179" width="6" height="10" fill="#238636"><animate attributeName="opacity" values="0.1;0.6;0.1" dur="1.15s" repeatCount="indefinite"/></rect>
+    <rect x="245" y="179" width="6" height="10" fill="#21262d"/>
+    <rect x="255" y="179" width="6" height="10" fill="#21262d"/>
+    <rect x="265" y="179" width="6" height="10" fill="#21262d"/>
+    <rect x="275" y="179" width="6" height="10" fill="#21262d"/>
   </g>
 </svg>
